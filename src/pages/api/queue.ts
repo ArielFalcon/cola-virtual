@@ -4,8 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+// Instantiate the Redis client with credentials from environment variables
+const redis = new Redis({
+  url: import.meta.env.UPSTASH_REDIS_REST_URL,
+  token: import.meta.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  redis: redis,
   limiter: Ratelimit.slidingWindow(1, "30 s"), // 1 request per 30 seconds
   analytics: true,
   prefix: "@upstash/ratelimit",
@@ -14,7 +20,11 @@ const ratelimit = new Ratelimit({
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip = clientAddress;
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(/, /)[0] : clientAddress;
+
+  console.log(`[Rate Limit] Recibida petición desde la IP: ${ip}`);
+
   const { success, limit, remaining, reset } = await ratelimit.limit(ip);
 
   if (!success) {

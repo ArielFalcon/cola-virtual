@@ -1,44 +1,10 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../lib/firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-// Instantiate the Redis client with credentials from environment variables
-const redis = new Redis({
-  url: import.meta.env.UPSTASH_REDIS_REST_URL,
-  token: import.meta.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-const ratelimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(1, "30 s"), // 1 request per 30 seconds
-  analytics: true,
-  prefix: "@upstash/ratelimit",
-});
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(/, /)[0] : clientAddress;
-
-  console.log(`[Rate Limit] Recibida petición desde la IP: ${ip}`);
-
-  const { success, limit, remaining, reset } = await ratelimit.limit(ip);
-
-  if (!success) {
-    return new Response(
-      JSON.stringify({
-        error: "Too many requests. Please try again after some seconds.",
-        limit,
-        remaining,
-        reset
-      }),
-      { status: 429 }
-    );
-  }
-
+export const POST: APIRoute = async ({ request }) => {
   try {
     let { userId } = await request.json().catch(() => ({ userId: null }));
 
@@ -78,23 +44,30 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     const queueRef = db.collection('queue');
-    const snapshot = await queueRef.orderBy('createdAt', 'asc').get();
+    
+    // Paso 1: Obtener el documento del usuario para saber su `createdAt`
+    const userSnapshot = await queueRef.where('userId', '==', userId).limit(1).get();
 
-    let position = -1;
-    let total = snapshot.size;
-
-    snapshot.docs.forEach((doc, index) => {
-      if (doc.data().userId === userId) {
-        position = index + 1;
-      }
-    });
-
-    if (position === -1) {
+    if (userSnapshot.empty) {
         return new Response(JSON.stringify({ error: 'User not found in queue' }), {
             status: 404,
             headers: { 'Content-Type': 'application/json' },
         });
     }
+
+    const userCreatedAt = userSnapshot.docs[0].data().createdAt;
+
+    // Paso 2 y 3: Ejecutar consultas de conteo en paralelo para máxima eficiencia
+    const positionPromise = queueRef.where('createdAt', '<=', userCreatedAt).count().get();
+    const totalPromise = queueRef.count().get();
+
+    const [positionSnapshot, totalSnapshot] = await Promise.all([
+        positionPromise,
+        totalPromise,
+    ]);
+
+    const position = positionSnapshot.data().count;
+    const total = totalSnapshot.data().count;
 
     return new Response(JSON.stringify({ position, total }), {
       status: 200,

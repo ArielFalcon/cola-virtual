@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Cola Virtual pa' Sonarle un Galletazo al Necio</h1>
+  <h1>Cola Virtual</h1>
   <p><strong>Un experimento social hecho con la urgencia que solo un cubano entiende.</strong></p>
   <br/>
 </div>

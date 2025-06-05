@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=700&color=F75C7E&size=28&center=true&vCenter=true&width=600&height=100&lines=Cola+Virtual%3A+El+Experimento+Social;Hecho+con+la+urgencia+de+un+cubano...;%C2%A1El+%C3%BAltimo+que+llegue+es+familia+del+director!;" alt="Cola Virtual Typing SVG">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=700&color=F75C7E&size=28&center=true&vCenter=true&width=600&height=100&lines=Cola+Virtual%3A+El+Experimento+Social;HHecho+con+la+urgencia+de+un+cubano..." alt="Cola Virtual Typing SVG">
 </div>
 
 <p align="center">

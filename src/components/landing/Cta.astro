@@ -19,7 +19,15 @@
 
       <!-- State: Position in Queue -->
       <div id="cta-position-wrapper" class="hidden">
-        <div id="position-display" class="text-white text-center items-center w-full bg-green-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl"></div>
+        <div class="flex flex-col items-center justify-center w-full bg-green-600 duration-200 font-display lg:py-12 px-4 py-6">
+          <div id="position-display" class="text-white text-center text-3xl lg:text-6xl font-medium"></div>
+          <a id="share-button" href="#" target="_blank" class="text-black bg-white/90 hover:bg-white mt-4 lg:mt-6 px-6 py-2 rounded-full text-lg lg:text-xl font-medium duration-200 inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mr-2" viewBox="0 0 16 16">
+              <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.6.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+            </svg>
+            Compartir en X
+          </a>
+        </div>
       </div>
 
       <!-- State: Error -->
@@ -42,6 +50,7 @@
     const positionDisplay = document.getElementById('position-display');
     const errorDisplay = document.getElementById('error-display');
     const joinButton = document.getElementById('join-queue-btn');
+    const shareButton = document.getElementById('share-button') as HTMLAnchorElement;
 
     const storageKey = 'virtualQueueUserId';
     let retryCount = 0;
@@ -70,6 +79,11 @@
     const renderPosition = (position, total) => {
       retryCount = 0;
       positionDisplay.textContent = `#${position} de ${total}`;
+
+      const shareText = `¡Ya marqué en la cola pa darle el galletazo a El Necio! Soy el #${position} de ${total}. ¡Métete pero no empujes! https://cola-virtual.vercel.app`;
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${window.location.href}`;
+      shareButton.href = shareUrl;
+
       setState('position');
     };
     

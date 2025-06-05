@@ -1,10 +1,103 @@
 <section class="border-white/20  border-b">
   <div class="mx-auto border-white/20  border-x max-w-7xl">
-    <div class="bg-transparent duration-200 group hover:bg-orange ">
-      <a
-        href="mailto:michael@andreuzza.com"
-        class="text-white text-center items-center w-full bg-orange  duration-200 focus:outline-disc focus:ring-0 font-display font-medium hoder:rounded-0 inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl"
-        >Píde el último</a>
+    <div id="cta-container" class="bg-transparent duration-200 group hover:bg-orange ">
+      <!-- This content will be dynamically replaced by the script -->
+      <div class="text-white text-center items-center w-full bg-gray-800 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Cargando...</div>
     </div>
   </div>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctaContainer = document.getElementById('cta-container');
+    const storageKey = 'virtualQueueUserId';
+    let retryCount = 0;
+    const maxRetries = 5;
+
+    const renderLoading = () => {
+        ctaContainer.classList.add('group', 'hover:bg-orange');
+        ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-gray-800 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Cargando...</div>`;
+    }
+
+    const renderButton = () => {
+      ctaContainer.classList.add('group', 'hover:bg-orange');
+      const buttonHtml = `<a href="#" id="join-queue-btn" class="text-white text-center items-center w-full bg-orange duration-200 focus:outline-disc focus:ring-0 font-display font-medium hoder:rounded-0 inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Pide el último</a>`;
+      ctaContainer.innerHTML = buttonHtml;
+      document.getElementById('join-queue-btn')?.addEventListener('click', handleJoinQueue);
+    };
+
+    const renderPosition = (position: number, total: number) => {
+      retryCount = 0;
+      ctaContainer.classList.remove('group', 'hover:bg-orange');
+      ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-green-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl">#${position} de ${total}</div>`;
+    };
+    
+    const renderError = (message: string) => {
+        ctaContainer.classList.remove('group', 'hover:bg-orange');
+        ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-red-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl">${message}</div>`;
+    }
+
+
+    const handleJoinQueue = async (e: Event) => {
+      e.preventDefault();
+      retryCount = 0;
+      renderLoading();
+      try {
+        const response = await fetch('/api/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: localStorage.getItem(storageKey) })
+        });
+
+        if (!response.ok) throw new Error('Failed to join queue');
+
+        const { userId } = await response.json();
+        localStorage.setItem(storageKey, userId);
+        checkQueueStatus(); // Re-check status to show position
+      } catch (error) {
+        console.error(error);
+        renderError('Error al unirse a la fila.');
+      }
+    };
+
+    const checkQueueStatus = async () => {
+      const userId = localStorage.getItem(storageKey);
+      if (!userId) {
+        renderButton();
+        return;
+      }
+      
+      renderLoading();
+
+      try {
+        const response = await fetch(`/api/queue?userId=${userId}`);
+        
+        if (response.status === 404) {
+             // User is in localStorage but not in DB, maybe DB was cleared
+            localStorage.removeItem(storageKey);
+            renderButton();
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error('Failed to get queue status');
+        }
+
+        const { position, total } = await response.json();
+        renderPosition(position, total);
+
+      } catch (error) {
+        console.error(error);
+        retryCount++;
+        if (retryCount < maxRetries) {
+          renderError(`Error... Reintentando (${retryCount}/${maxRetries})`);
+          setTimeout(checkQueueStatus, 3000);
+        } else {
+          renderError('Error de red. Inténtalo más tarde.');
+        }
+      }
+    };
+
+    checkQueueStatus();
+  });
+</script>

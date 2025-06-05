@@ -4,13 +4,18 @@ import sitemap from "@astrojs/sitemap";
 import vercel from '@astrojs/vercel';
 export default defineConfig({
   vite: {
-   plugins: [tailwindcss()],
- },
+    plugins: [tailwindcss()],
+  },
 
-  // add yur domain name here
-  site: 'https://lexingtonthemes.com',
+  site: 'https://cola-virtual.vercel.app',
 
   compressHTML: true,
   integrations: [sitemap()],
-  adapter: vercel()
+  adapter: vercel(
+    {
+      webAnalytics: {
+        enabled: true,
+      },
+    }
+  )
 });

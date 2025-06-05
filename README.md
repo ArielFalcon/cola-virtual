@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/ArielFalcon/cola-virtual/main/public/marcador-final.png" alt="Logo del Proyecto" width="200"/>
   <h1>Cola Virtual pa' Sonarle un Galletazo al Necio</h1>
   <p><strong>Un experimento social hecho con la urgencia que solo un cubano entiende.</strong></p>
   <br/>
@@ -7,7 +6,7 @@
 
 ## ¿De qué va esto?
 
-Esta es una aplicación web simple, construida a la velocidad de un pan con timba, que implementa una fila virtual. La idea es sencilla: si alguna vez has sentido la necesidad ciudadana de "mandar al necio para urgencias", este es tu lugar.
+Esta es una aplicación web simple, construida a la velocidad en que se va la luz, que implementa una fila virtual de juguete. La idea es sencilla: si alguna vez has sentido la necesidad ciudadana de "mandar a alguien para urgencias", este es tu repo.
 
 El proyecto es, en esencia, un juego y una broma interna para la comunidad cubana. No se toma muy en serio a sí mismo, y por lo tanto, la seguridad y la persistencia de los datos son... relajadas.
 

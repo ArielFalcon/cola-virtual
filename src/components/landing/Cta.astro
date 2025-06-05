@@ -1,8 +1,32 @@
 <section class="border-white/20  border-b">
   <div class="mx-auto border-white/20  border-x max-w-7xl">
-    <div id="cta-container" class="bg-transparent duration-200 group hover:bg-orange ">
-      <!-- This content will be dynamically replaced by the script -->
-      <div class="text-white text-center items-center w-full bg-gray-800 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Cargando...</div>
+    <div id="cta-container" class="bg-transparent duration-200">
+      
+      <!-- State: Join Button -->
+      <div id="cta-join-wrapper" class="hidden">
+        <a href="#" id="join-queue-btn" class="text-white text-center items-center w-full bg-orange duration-200 focus:outline-disc focus:ring-0 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl">Pide el último</a>
+      </div>
+
+      <!-- State: Loading -->
+      <div id="cta-loading-wrapper"> <!-- Show this by default -->
+          <div class="text-white text-center items-center w-full bg-gray-800 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl loader-dots">
+            <span>Cargando</span>
+            <div class="h-3 w-3 lg:h-5 lg:w-5 bg-white rounded-full ml-4 lg:ml-6"></div>
+            <div class="h-3 w-3 lg:h-5 lg:w-5 bg-white rounded-full ml-2 lg:ml-3"></div>
+            <div class="h-3 w-3 lg:h-5 lg:w-5 bg-white rounded-full ml-2 lg:ml-3"></div>
+          </div>
+      </div>
+
+      <!-- State: Position in Queue -->
+      <div id="cta-position-wrapper" class="hidden">
+        <div id="position-display" class="text-white text-center items-center w-full bg-green-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl"></div>
+      </div>
+
+      <!-- State: Error -->
+      <div id="cta-error-wrapper" class="hidden">
+          <div id="error-display" class="text-white text-center items-center w-full bg-red-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl"></div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -10,35 +34,59 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const ctaContainer = document.getElementById('cta-container');
+    const joinWrapper = document.getElementById('cta-join-wrapper');
+    const loadingWrapper = document.getElementById('cta-loading-wrapper');
+    const positionWrapper = document.getElementById('cta-position-wrapper');
+    const errorWrapper = document.getElementById('cta-error-wrapper');
+    
+    const positionDisplay = document.getElementById('position-display');
+    const errorDisplay = document.getElementById('error-display');
+    const joinButton = document.getElementById('join-queue-btn');
+
     const storageKey = 'virtualQueueUserId';
     let retryCount = 0;
     const maxRetries = 5;
 
-    const renderLoading = () => {
-        ctaContainer.classList.add('group', 'hover:bg-orange');
-        ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-gray-800 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Cargando...</div>`;
+    const setState = (state) => {
+        // Reset all
+        joinWrapper.classList.add('hidden');
+        loadingWrapper.classList.add('hidden');
+        positionWrapper.classList.add('hidden');
+        errorWrapper.classList.add('hidden');
+        ctaContainer.classList.remove('group', 'hover:bg-orange', 'cursor-cookie');
+
+        if (state === 'loading') {
+            loadingWrapper.classList.remove('hidden');
+        } else if (state === 'button') {
+            joinWrapper.classList.remove('hidden');
+            ctaContainer.classList.add('group', 'hover:bg-orange', 'cursor-cookie');
+        } else if (state === 'position') {
+            positionWrapper.classList.remove('hidden');
+        } else if (state === 'error') {
+            errorWrapper.classList.remove('hidden');
+        }
+    }
+
+    const renderPosition = (position, total) => {
+      retryCount = 0;
+      positionDisplay.textContent = `#${position} de ${total}`;
+      setState('position');
+    };
+    
+    const renderError = (message) => {
+      errorDisplay.textContent = message;
+      setState('error');
     }
 
     const renderButton = () => {
-      ctaContainer.classList.add('group', 'hover:bg-orange');
-      const buttonHtml = `<a href="#" id="join-queue-btn" class="text-white text-center items-center w-full bg-orange duration-200 focus:outline-disc focus:ring-0 font-display font-medium hoder:rounded-0 inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 rounded-full text-3xl">Pide el último</a>`;
-      ctaContainer.innerHTML = buttonHtml;
-      document.getElementById('join-queue-btn')?.addEventListener('click', handleJoinQueue);
-    };
-
-    const renderPosition = (position: number, total: number) => {
-      retryCount = 0;
-      ctaContainer.classList.remove('group', 'hover:bg-orange');
-      ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-green-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl">#${position} de ${total}</div>`;
-    };
+      setState('button');
+    }
     
-    const renderError = (message: string) => {
-        ctaContainer.classList.remove('group', 'hover:bg-orange');
-        ctaContainer.innerHTML = `<div class="text-white text-center items-center w-full bg-red-600 duration-200 font-display font-medium inline-flex justify-center lg:py-12 lg:text-6xl px-4 py-6 text-3xl">${message}</div>`;
+    const renderLoading = () => {
+        setState('loading');
     }
 
-
-    const handleJoinQueue = async (e: Event) => {
+    const handleJoinQueue = async (e) => {
       e.preventDefault();
       retryCount = 0;
       renderLoading();
@@ -59,6 +107,8 @@
         renderError('Error al unirse a la fila.');
       }
     };
+    
+    joinButton.addEventListener('click', handleJoinQueue);
 
     const checkQueueStatus = async () => {
       const userId = localStorage.getItem(storageKey);

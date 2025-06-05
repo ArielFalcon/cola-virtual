@@ -1,10 +1,34 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../lib/firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(1, "30 s"), // 1 request per 30 seconds
+  analytics: true,
+  prefix: "@upstash/ratelimit",
+});
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  const ip = clientAddress;
+  const { success, limit, remaining, reset } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return new Response(
+      JSON.stringify({
+        error: "Too many requests. Please try again after some seconds.",
+        limit,
+        remaining,
+        reset
+      }),
+      { status: 429 }
+    );
+  }
+
   try {
     let { userId } = await request.json().catch(() => ({ userId: null }));
 

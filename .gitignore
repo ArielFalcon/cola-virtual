@@ -39,3 +39,4 @@ pnpm-debug.log*
 .astro/
 .vercel/
 package-lock.json
+pnpm-lock.yaml

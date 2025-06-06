@@ -35,6 +35,7 @@ El proyecto es, en esencia, un juego y una broma interna para la comunidad cuban
 -   **⚡ IP Throttling:** Para prevenir que los "coleros" digitales hagan de las suyas, el sistema utiliza un `rate limiter` a nivel de middleware. Cada IP tiene un cupo de peticiones para mantener el orden. Esta funcionalidad se implementa con la velocidad de [Upstash Redis](https://upstash.com/redis).
 -   **💳 Pagos con Stripe:** Aunque es un juego, el proyecto está preparado para el capitalismo de verdad, integrando [Stripe](https://stripe.com/) como pasarela de pagos.
 -   **🚀 Despliegue en el Edge:** Servido globalmente a través de Vercel para una latencia mínima, porque ni la cola virtual puede ser lenta.
+-   **💬 Testimonios de la Comunidad:** ¿Qué sería de una cola sin el chisme? Los usuarios pueden dejar sus impresiones, que se muestran en tiempo real. Cada usuario tiene derecho a un único brete, ¡así que más vale que sea bueno!
 
 
 ## 🚀 Puesta en Marcha

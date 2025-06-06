@@ -1,16 +1,17 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Intro from '@/components/landing/Intro.astro';
+import Services from '@/components/landing/Services.astro'
 import Hero from "@/components/landing/Hero.astro";
-import Intro from "@/components/landing/Intro.astro";
-import Services from "@/components/landing/Services.astro";
-
-
+import Testimonials from '@/components/Testimonials.astro';
 ---
 
-
-<BaseLayout>
-  <Hero />
-
+<BaseLayout
+  title="Landing | Astro"
+  description="The easiest way to build a website with Astro + Tailwind CSS."
+>
+<Hero />
   <Intro />
+  <Testimonials />
   <Services />
 </BaseLayout>

@@ -1,0 +1,159 @@
+---
+import type { Testimonial } from '../../types/testimonials';
+
+interface Props {
+	testimonials: Testimonial[];
+}
+
+const { testimonials } = Astro.props;
+---
+
+<section class="border-b border-white/20 bg-accent-500">
+	<div
+		class="mx-auto max-w-7xl border-white/20 border-x"
+		x-data="{ init() {
+      new Splide(this.$refs.splide, {
+        perPage: 4,
+        gap: '1rem',
+        breakpoints: {
+          640: { perPage: 1 },
+        },
+      }).mount()
+    } }"
+	>
+		<section
+			class="splide is-initialized splide--slide splide--ltr splide--draggable is-active"
+			aria-label="Splide/Alpine.js"
+			x-ref="splide"
+			id="splide01"
+			aria-roledescription="carousel"
+		>
+			<div class="splide__arrows splide__arrows--ltr items-center">
+				<button
+					class="splide__arrow splide__arrow--prev"
+					type="button"
+					aria-label="Previous slide"
+					aria-controls="splide01-track"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" focusable="false">
+						<path d="m15.5 0.932-4.3 4.38 14.5 14.6-14.5 14.5 4.3 4.4 14.6-14.6 4.4-4.3-4.4-4.4-14.6-14.6z"></path>
+					</svg>
+				</button>
+				<button
+					class="splide__arrow splide__arrow--next"
+					type="button"
+					aria-label="Next slide"
+					aria-controls="splide01-track"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" focusable="false">
+						<path d="m15.5 0.932-4.3 4.38 14.5 14.6-14.5 14.5 4.3 4.4 14.6-14.6 4.4-4.3-4.4-4.4-14.6-14.6z"></path>
+					</svg>
+				</button>
+			</div>
+			<div
+				class="h-full splide__track splide__track--slide splide__track--ltr splide__track--draggable"
+				id="splide01-track"
+				style="padding-left: 0; padding-right: 0;"
+				aria-live="polite"
+				aria-atomic="true"
+				aria-busy="false"
+			>
+				<ul class="splide__list" id="splide01-list" role="presentation">
+					{testimonials.map((testimonial) => (
+						<li
+							class="flex justify-center flex-col splide__slide"
+							id={`splide01-slide-${testimonial.id}`}
+							aria-roledescription="slide"
+							aria-label={testimonial.name}
+							style="margin-right: 0.5rem; width: calc(((100% + 0.5rem) / 1) - 0.5rem);"
+						>
+							<div id={`testimonial-${testimonial.id}`} class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
+								<div class="pr-12">
+									<p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]">
+										“{testimonial.message}”
+									</p>
+									<h3 class="font-bold text-white text-xl border-t border-white/20 pt-4">{testimonial.name}</h3>
+									<p class="text-gray-400 text-sm">{testimonial.occupation}</p>
+								</div>
+							</div>
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+	</div>
+</section>
+
+<script>
+  import Splide from '@splidejs/splide';
+  import type { Testimonial } from '../../types/testimonials';
+  import '@splidejs/splide/css/core';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const splideEl = document.querySelector('.splide') as HTMLElement;
+    if (!splideEl) return;
+    
+    const splide = new Splide(splideEl, {
+      perPage: 4,
+      gap: '1rem',
+      breakpoints: {
+        1024: { perPage: 2 },
+        768: { perPage: 1 },
+      },
+			pagination: false,
+    });
+    splide.mount();
+		
+		const createCardHTML = (testimonial: Testimonial): string => {
+			return `
+				<div id="testimonial-${testimonial.id}" class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
+			
+					<div class="pr-12">
+						<p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]">
+							${testimonial.message}
+						</p>
+						<h3 class="font-bold text-white text-xl border-t border-white/20 pt-4">${testimonial.name}</h3>
+						<p class="text-gray-400 text-sm">${testimonial.occupation}</p>
+					</div>
+				</div>
+			`;
+		};
+		
+    document.addEventListener('testimonialAdded', (e: Event) => {
+			const customEvent = e as CustomEvent<Testimonial>;
+			const newTestimonial = customEvent.detail;
+      const newSlide = document.createElement('li');
+      newSlide.className = 'splide__slide';
+      newSlide.innerHTML = createCardHTML(newTestimonial);
+      splide.add(newSlide, 0);
+    });
+
+    splideEl.addEventListener('click', async (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target && target.matches('.delete-button')) {
+        const testimonialId = target.dataset.id;
+        if (!testimonialId || !confirm('¿Estás seguro?')) return;
+
+        const response = await fetch('/api/testimonials', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: testimonialId }),
+        });
+
+        if (response.ok) {
+          const slideToRemove = target.closest('.splide__slide');
+          if (slideToRemove && slideToRemove.parentElement) {
+            const allSlides = Array.from(slideToRemove.parentElement.children);
+            const slideIndex = allSlides.indexOf(slideToRemove);
+            if (slideIndex > -1) {
+              splide.remove(slideIndex);
+            }
+          }
+          document.dispatchEvent(new CustomEvent('testimonialDeleted'));
+        } else {
+          alert('No se pudo borrar.');
+        }
+      }
+		});
+  });
+</script>

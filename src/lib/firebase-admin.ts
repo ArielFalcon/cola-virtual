@@ -1,17 +1,16 @@
 import admin from "firebase-admin";
 
-const serviceAccountString = import.meta.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-if (!serviceAccountString) {
-  throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_KEY no está definida.");
-}
-
-const serviceAccount = JSON.parse(serviceAccountString);
+const serviceAccount = JSON.parse(import.meta.env.FIREBASE_SERVICE_ACCOUNT_KEY as string);
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK initialized successfully.');
+  } catch (error: any) {
+    console.error('Firebase admin initialization error', error.stack);
+  }
 }
 
 export const db = admin.firestore(); 

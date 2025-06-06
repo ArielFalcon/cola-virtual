@@ -2,10 +2,9 @@
 import Chat from "./landing/Chat.astro";
 import type { Testimonial } from "../types/testimonials";
 
-// 1. Hacemos el fetch en el servidor para tener los datos disponibles para las props.
 let testimonials: Testimonial[] = [];
 try {
-  // Usamos Astro.url para construir una URL absoluta para el fetch en el servidor.
+
   const response = await fetch(new URL('/api/testimonials', Astro.url.origin));
   if (response.ok) {
     testimonials = await response.json();
@@ -27,15 +26,15 @@ try {
             <div id="testimonial-form-container" class="mb-16">
                 <form id="testimonial-form" class="space-y-6 max-w-2xl mx-auto">
                     <div>
-                        <label for="name" class="block font-display uppercase text-white mb-2">Nombre</label>
+                        <label for="name" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Nombre</label>
                         <input type="text" id="name" name="name" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
                     </div>
                     <div>
-                        <label for="occupation" class="block font-display uppercase text-white mb-2">Ocupación </label>
+                        <label for="occupation" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Ocupación </label>
                         <input type="text" id="occupation" name="occupation" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
                     </div>
                     <div>
-                        <label for="message" class="block font-display uppercase text-white mb-2">Tu mensaje</label>
+                        <label for="message" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Tu mensaje</label>
                         <textarea id="message" name="message" rows="6" required minlength="1" maxlength="300" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500"></textarea>
                     </div>
                     <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
@@ -45,14 +44,12 @@ try {
                 </form>
             </div>
             
-            <!-- 2. Pasamos los testimonios cargados al componente Chat -->
             <Chat testimonials={testimonials} />
         </div>
     </div>
 </section>
 
 <script>
-    // 3. El script de cliente ahora se enfoca solo en la interactividad (form y borrado)
     document.addEventListener('DOMContentLoaded', () => {
         const formContainer = document.getElementById('testimonial-form-container') as HTMLElement;
         const form = document.getElementById('testimonial-form') as HTMLFormElement;
@@ -140,11 +137,11 @@ try {
                 formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
             }
         });
-
-        // La lógica de borrado ahora vivirá dentro del componente del carrusel,
-        // ya que es el que renderiza los botones de borrado.
-        
-        // Comprobar estado inicial del formulario
+      
         checkAndToggleForm();
+
+        document.addEventListener('testimonialDeleted', () => {
+            checkAndToggleForm();
+        });
     });
 </script> 

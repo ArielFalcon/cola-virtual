@@ -16,7 +16,7 @@ const postQueueRatelimit = new Ratelimit({
 
 const getQueueRatelimit = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(10, "10 s"), // 10 peticiones por 10 segundos
+    limiter: Ratelimit.slidingWindow(5, "10 s"), // 5 peticiones por 10 segundos
     analytics: true,
     prefix: "@upstash/ratelimit-get-queue",
 });

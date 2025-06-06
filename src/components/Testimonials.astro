@@ -1,277 +1,137 @@
 ---
-// import type { Testimonial } from "../types/index";
-interface Testimonial {
-    id: string;
-    userId: string;
-    name: string;
-    occupation: string;
-    message: string;
-    createdAt: any;
-}
-
-interface Props {
-    testimonials: Testimonial[];
-}
-
-const { testimonials } = Astro.props;
 ---
-<style>
-    @import 'swiper/css';
-    @import 'swiper/css/navigation';
-
-    #testimonials-section .swiper-button-next,
-    #testimonials-section .swiper-button-prev {
-        color: #f59e0b; /* text-amber-500 */
-        background-color: rgba(17, 24, 39, 0.7); /* bg-gray-900 con opacidad */
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        transition: background-color 0.3s;
-    }
-
-    #testimonials-section .swiper-button-next:hover,
-    #testimonials-section .swiper-button-prev:hover {
-        background-color: rgba(31, 41, 55, 0.9); /* bg-gray-800 con opacidad */
-    }
-
-    #testimonials-section .swiper-button-next::after,
-    #testimonials-section .swiper-button-prev::after {
-        font-size: 20px;
-        font-weight: bold;
-    }
-
-    .swiper-slide {
-        height: auto;
-    }
-
-    .testimonial-card {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-</style>
-
-<section id="testimonials-section" class="py-20 text-white relative">
-    <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12 uppercase font-display">Lo que dice la gente en la cola</h2>
-
-        <!-- Swiper -->
-        <div class="swiper testimonials-carousel relative">
-            <div class="swiper-wrapper">
-                {testimonials.map((testimonial) => (
-                    <div class="swiper-slide">
-                        <div id={`testimonial-${testimonial.id}`} class="testimonial-card bg-gray-900/50 p-6 rounded-lg border border-gray-700 flex flex-col justify-between h-full relative">
-                            <p class="text-gray-300 mb-4 flex-grow text-sm md:text-base">"{testimonial.message}"</p>
-                            <div class="mt-auto">
-                                <p class="font-bold text-white">{testimonial.name}</p>
-                                <p class="text-sm text-gray-400">{testimonial.occupation}</p>
-                            </div>
-                        </div>
+<section class="border-b border-white/20">
+    <div class="mx-auto max-w-7xl border-x border-white/20">
+        <div class="p-8">
+            <h2 class="text-3xl font-display uppercase font-bold text-center text-white">Lo que dice la gente en la cola</h2>
+        </div>
+    </div>
+    <div class="mx-auto max-w-7xl border-x border-t border-white/20 gradient-grid">
+        <div class="p-8">
+            <div id="testimonial-form-container" class="mb-16">
+                <form id="testimonial-form" class="space-y-6 max-w-2xl mx-auto">
+                    <div>
+                        <label for="name" class="block font-display uppercase text-white mb-2">Nombre</label>
+                        <input type="text" id="name" name="name" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
                     </div>
-                ))}
+                    <div>
+                        <label for="occupation" class="block font-display uppercase text-white mb-2">Ocupación </label>
+                        <input type="text" id="occupation" name="occupation" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
+                    </div>
+                    <div>
+                        <label for="message" class="block font-display uppercase text-white mb-2">Tu mensaje</label>
+                        <textarea id="message" name="message" rows="6" required minlength="1" maxlength="300" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
+                        Enviar Mensaje
+                    </button>
+                    <p id="form-message" class="text-center text-sm min-h-[20px]"></p>
+                </form>
+            </div>
+
+            <div id="testimonials-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                <p class="initial-loading-message text-center text-gray-400 col-span-full">Cargando testimonios...</p>
             </div>
         </div>
-
-        <!-- Botones de navegación -->
-        <div class="swiper-button-prev -left-2 md:-left-5"></div>
-        <div class="swiper-button-next -right-2 md:-right-5"></div>
-
-        <!-- Formulario para añadir testimonio -->
-        <div id="testimonial-form-container" class="mt-16 max-w-2xl mx-auto hidden">
-            <h3 class="text-2xl font-bold text-center mb-6 uppercase font-display">Deja tu propio mensaje</h3>
-            <form id="testimonial-form" class="space-y-6">
-                 <div>
-                     <label for="name" class="block font-display uppercase text-white mb-2">Nombre</label>
-                     <input type="text" id="name" name="name" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
-                 </div>
-                 <div>
-                      <label for="occupation" class="block font-display uppercase text-white mb-2">Ocupación</label>
-                      <input type="text" id="occupation" name="occupation" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
-                 </div>
-                 <div>
-                     <label for="message" class="block font-display uppercase text-white mb-2">Mensaje</label>
-                     <textarea id="message" name="message" rows="6" required minlength="1" maxlength="300" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500"></textarea>
-                 </div>
-                 <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer">
-                     Enviar Mensaje
-                 </button>
-            </form>
-        </div>
-         <div id="testimonial-submitted-message" class="mt-16 text-center hidden">
-             <p class="text-xl text-amber-500">¡Gracias! Tu mensaje ha sido enviado.</p>
-         </div>
     </div>
 </section>
 
 <script>
-    import Swiper from 'swiper';
-    import { Navigation } from 'swiper/modules';
-    
-    // Definición de tipo local para evitar problemas de importación
-    interface Testimonial {
-        id: string;
-        userId: string;
-        name: string;
-        occupation: string;
-        message: string;
-        createdAt: any;
-    }
-
-    let swiperInstance: Swiper | null = null;
-
     document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('testimonial-form') as HTMLFormElement;
+        const testimonialsContainer = document.getElementById('testimonials-container') as HTMLElement;
         const formContainer = document.getElementById('testimonial-form-container') as HTMLElement;
-        const submittedMessage = document.getElementById('testimonial-submitted-message') as HTMLElement;
-
+        const form = document.getElementById('testimonial-form') as HTMLFormElement;
+        const formMessage = document.getElementById('form-message') as HTMLParagraphElement;
         let currentUserId = localStorage.getItem('virtualQueueUserId');
-        let hasSubmittedTestimonial = localStorage.getItem('hasSubmittedTestimonial') === 'true';
-        let allTestimonials: Testimonial[] = [];
-        let currentPage = 1;
-        let isLoading = false;
+
+        // Escuchar el evento de registro de usuario para actualizar el ID dinámicamente.
+        document.addEventListener('userRegistered', (e: CustomEvent) => {
+            if (e.detail.userId) {
+                currentUserId = e.detail.userId;
+              
+                checkAndToggleForm();
+            }
+        });
+
+        const createTestimonialCardHTML = (testimonial) => {
+            const isAuthor = testimonial.id === currentUserId;
+            const deleteButtonHTML = isAuthor
+                ? `<button data-id="${testimonial.id}" class="delete-button absolute top-4 right-4 bg-gray-900/70 text-red-400 hover:text-white hover:bg-red-500/80 font-bold py-1 px-2 rounded-md transition-all duration-200">Borrar</button>`
+                : '';
+
+            return `
+                <div id="testimonial-${testimonial.id}" class="testimonial-card bg-black p-6 rounded-lg relative">
+                    <div class="pr-12">
+                        <p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent">“${testimonial.message}”</p>
+                        <h3 class="font-bold text-white">${testimonial.name}</h3>
+                        <p class="text-gray-400 text-sm">${testimonial.occupation}</p>
+                    </div>
+                    ${deleteButtonHTML}
+                </div>
+            `;
+        };
+
+        const renderTestimonials = (testimonials) => {
+            if (testimonials.length === 0) {
+                testimonialsContainer.innerHTML = '<p class="text-center text-gray-400 col-span-full">Nadie ha dejado un mensaje todavía. ¡Sé el primero!</p>';
+            } else {
+                testimonialsContainer.innerHTML = testimonials.map(createTestimonialCardHTML).join('');
+            }
+        };
         
         const checkAndToggleForm = () => {
-            const userHasTestimonial = allTestimonials.some(t => t.userId === currentUserId);
-            if (currentUserId && !hasSubmittedTestimonial && !userHasTestimonial) {
-                formContainer.style.display = 'block';
-                submittedMessage.style.display = 'none';
-            } else {
-                formContainer.style.display = 'none';
-            }
-        };
-        
-        const renderDeleteButton = (testimonial: Testimonial, cardElement: HTMLElement) => {
-            const existingButton = cardElement.querySelector('.delete-button');
-            if (existingButton) existingButton.remove();
-
-            if (testimonial.userId === currentUserId) {
-                const deleteButton = document.createElement('button');
-                deleteButton.dataset.testimonialId = testimonial.id;
-                deleteButton.className = "delete-button absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm transition-colors";
-                deleteButton.textContent = 'Borrar';
-                cardElement.appendChild(deleteButton);
-            }
+            const hasSentMessage = localStorage.getItem('virtualQueueHasSendedMessage') === 'true';
+            formContainer.style.display = hasSentMessage ? 'none' : 'block';
         };
 
-        const updateAllDeleteButtons = () => {
-            if (!swiperInstance) return;
-            allTestimonials.forEach((testimonial, index) => {
-                const slide = swiperInstance.slides[index];
-                if (slide) {
-                    const card = slide.querySelector('.testimonial-card') as HTMLElement;
-                    if (card) renderDeleteButton(testimonial, card);
-                }
-            });
-        };
-        
-        const handleDelete = async (testimonialId: string) => {
+        const fetchAndRenderTestimonials = async () => {
             try {
-                const response = await fetch(`/api/testimonials`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: testimonialId, userId: currentUserId }),
-                });
+                const response = await fetch('/api/testimonials');
+                const testimonials = await response.json();
+                renderTestimonials(testimonials);
+                
+                const userHasPosted = testimonials.some(t => t.id === currentUserId);
+                localStorage.setItem('virtualQueueHasSendedMessage', userHasPosted.toString());
+                checkAndToggleForm();
 
-                if (response.ok) {
-                    const slideIndex = allTestimonials.findIndex(t => t.id === testimonialId);
-                    if (slideIndex > -1 && swiperInstance) {
-                        swiperInstance.removeSlide(slideIndex);
-                        allTestimonials.splice(slideIndex, 1);
-                        swiperInstance.update();
-                    }
-                    localStorage.removeItem('hasSubmittedTestimonial');
-                    hasSubmittedTestimonial = false;
-                    checkAndToggleForm();
-                } else {
-                    const error = await response.json();
-                    alert(`Error: ${error.message}`);
-                }
-            } catch (err) {
-                console.error('Error deleting testimonial:', err);
-                alert('Hubo un problema al borrar el mensaje.');
+            } catch (error) {
+                console.error('Failed to fetch testimonials:', error);
+                testimonialsContainer.innerHTML = '<p class="text-center text-red-400 col-span-full">No se pudieron cargar los testimonios.</p>';
             }
         };
-        
-        const initialTestimonialsData = document.getElementById('initial-testimonials-data');
-        if (initialTestimonialsData?.textContent) {
-            try {
-                allTestimonials = JSON.parse(initialTestimonialsData.textContent);
-            } catch(e) {
-                console.error("Failed to parse testimonials JSON", e);
-            }
-        }
-
-        swiperInstance = new Swiper('.testimonials-carousel', {
-            modules: [Navigation],
-            slidesPerView: 1,
-            spaceBetween: 16,
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                640: { slidesPerView: 2, spaceBetween: 24 },
-                1024: { slidesPerView: 4, spaceBetween: 32 },
-            },
-            on: {
-                init: () => {
-                    updateAllDeleteButtons();
-                    checkAndToggleForm();
-                },
-                reachEnd: async () => {
-                    if (isLoading || !swiperInstance) return;
-                    const totalSlides = swiperInstance.slides.length;
-                    if (totalSlides === 0 || totalSlides % 20 !== 0) return;
-
-                    isLoading = true;
-                    currentPage++;
-                    
-                    try {
-                        const response = await fetch(`/api/testimonials?page=${currentPage}&limit=20`);
-                        const newTestimonials: Testimonial[] = await response.json();
-
-                        if (newTestimonials.length > 0) {
-                            allTestimonials.push(...newTestimonials);
-                            const newSlides = newTestimonials.map(testimonial => {
-                                const slide = document.createElement('div');
-                                slide.className = 'swiper-slide';
-                                slide.innerHTML = `
-                                    <div id="testimonial-${testimonial.id}" class="testimonial-card bg-gray-900/50 p-6 rounded-lg border border-gray-700 flex flex-col justify-between h-full relative">
-                                        <p class="text-gray-300 mb-4 flex-grow text-sm md:text-base">"${testimonial.message}"</p>
-                                        <div class="mt-auto">
-                                            <p class="font-bold text-white">${testimonial.name}</p>
-                                            <p class="text-sm text-gray-400">${testimonial.occupation}</p>
-                                        </div>
-                                    </div>
-                                `;
-                                const card = slide.querySelector('.testimonial-card') as HTMLElement;
-                                renderDeleteButton(testimonial, card);
-                                return slide;
-                            });
-                            swiperInstance.appendSlide(newSlides);
-                        }
-                    } catch (error) {
-                        console.error('Failed to load more testimonials:', error);
-                        currentPage--;
-                    } finally {
-                        isLoading = false;
-                    }
-                },
-            },
-        });
-        
-        document.querySelector('.testimonials-carousel')?.addEventListener('click', (e) => {
-             const target = e.target as HTMLElement;
-             if (target.classList.contains('delete-button')) {
-                const testimonialId = target.dataset.testimonialId;
-                if (testimonialId && confirm('¿Estás seguro de que quieres borrar tu mensaje?')) {
-                    handleDelete(testimonialId);
-                }
-            }
-        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            formMessage.textContent = '';
+            
+            const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+            const occupation = (form.elements.namedItem('occupation') as HTMLInputElement).value;
+            const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
+
+            if (name.length < 1 || name.length > 30) {
+                formMessage.textContent = 'El nombre debe tener entre 1 y 30 caracteres.';
+                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+                return;
+            }
+
+            if (occupation.length < 1 || occupation.length > 30) {
+                formMessage.textContent = 'La ocupación debe tener entre 1 y 30 caracteres.';
+                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+                return;
+            }
+
+            if (message.length < 1 || message.length > 300) {
+                formMessage.textContent = 'El mensaje debe tener entre 1 y 300 caracteres.';
+                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+                return;
+            }
+
+            if (!currentUserId) {
+                formMessage.textContent = 'Debes unirte a la cola primero para dejar un mensaje.';
+                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+                return;
+            }
+
             const formData = new FormData(form);
             const data = {
                 userId: currentUserId,
@@ -286,51 +146,67 @@ const { testimonials } = Astro.props;
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
                 });
-                
-                if (response.ok && swiperInstance) {
-                    const newTestimonial: Testimonial = await response.json();
-                    allTestimonials.unshift(newTestimonial);
 
-                    const slide = document.createElement('div');
-                    slide.className = 'swiper-slide';
-                    slide.innerHTML = `
-                        <div id="testimonial-${newTestimonial.id}" class="testimonial-card bg-gray-900/50 p-6 rounded-lg border border-gray-700 flex flex-col justify-between h-full relative">
-                            <p class="text-gray-300 mb-4 flex-grow text-sm md:text-base">"${newTestimonial.message}"</p>
-                            <div class="mt-auto">
-                                <p class="font-bold text-white">${newTestimonial.name}</p>
-                                <p class="text-sm text-gray-400">${newTestimonial.occupation}</p>
-                            </div>
-                        </div>
-                    `;
-                    const card = slide.querySelector('.testimonial-card') as HTMLElement;
-                    renderDeleteButton(newTestimonial, card);
-                    swiperInstance.prependSlide(slide);
+                if (response.ok) {
+                    const newTestimonial = await response.json();
+                    const cardHTML = createTestimonialCardHTML(newTestimonial);
                     
-                    form.reset();
-                    localStorage.setItem('hasSubmittedTestimonial', 'true');
-                    hasSubmittedTestimonial = true;
+                    const placeholder = testimonialsContainer.querySelector('p.col-span-full');
+                    if (placeholder) placeholder.parentElement.innerHTML = '';
+
+                    testimonialsContainer.insertAdjacentHTML('afterbegin', cardHTML);
+                    
+                    localStorage.setItem('virtualQueueHasSendedMessage', 'true');
                     checkAndToggleForm();
-                } else if (!response.ok) {
+                    form.reset();
+                } else {
                     const error = await response.json();
-                    alert(`Error: ${error.message}`);
+                    formMessage.textContent = error.error || 'Hubo un error al enviar tu mensaje.';
+                    formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
                 }
-            } catch (err) {
-                console.error('Error submitting testimonial:', err);
-                alert('Hubo un problema al enviar tu mensaje.');
+            } catch (error) {
+                formMessage.textContent = 'Error de red. Inténtalo de nuevo.';
+                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+            }
+        });
+
+        testimonialsContainer.addEventListener('click', async (e) => {
+            const target = e.target as HTMLElement;
+            if (target.matches('.delete-button')) {
+                const testimonialId = target.dataset.id;
+                if (!testimonialId || !confirm('¿Estás seguro de que quieres borrar tu mensaje?')) return;
+
+                try {
+                    const response = await fetch('/api/testimonials', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: testimonialId }),
+                    });
+
+                    if (response.ok) {
+                        const cardToRemove = document.getElementById(`testimonial-${testimonialId}`);
+                        if (cardToRemove) {
+                            cardToRemove.style.opacity = '0';
+                            cardToRemove.style.transform = 'scale(0.9)';
+                            setTimeout(() => {
+                                cardToRemove.remove();
+                                if (testimonialsContainer.children.length === 0) {
+                                     testimonialsContainer.innerHTML = '<p class="text-center text-gray-400 col-span-full">Nadie ha dejado un mensaje todavía. ¡Sé el primero!</p>';
+                                }
+                            }, 300);
+                        }
+                        localStorage.setItem('virtualQueueHasSendedMessage', 'false');
+                        checkAndToggleForm();
+                    } else {
+                        alert('No se pudo borrar el mensaje.');
+                    }
+                } catch (error) {
+                    alert('Error de red al intentar borrar.');
+                }
             }
         });
         
-        window.addEventListener('userRegistered', (e) => {
-            const customEvent = e as CustomEvent;
-            if (customEvent.detail && customEvent.detail.userId) {
-                currentUserId = customEvent.detail.userId;
-                checkAndToggleForm();
-                updateAllDeleteButtons();
-            }
-        });
+        // Carga inicial
+        fetchAndRenderTestimonials();
     });
-</script>
-
-<script id="initial-testimonials-data" type="application/json" is:inline>
-    {JSON.stringify(testimonials)}
-</script>
+</script> 

@@ -39,7 +39,7 @@
   </div>
 </section>
 
-<script>
+<script >
   document.addEventListener('DOMContentLoaded', () => {
     const ctaContainer = document.getElementById('cta-container');
     const joinWrapper = document.getElementById('cta-join-wrapper');
@@ -56,7 +56,7 @@
     let retryCount = 0;
     const maxRetries = 5;
 
-    const setState = (state) => {
+    const setState = (state: string) => {
         // Reset all
         joinWrapper.classList.add('hidden');
         loadingWrapper.classList.add('hidden');
@@ -76,18 +76,17 @@
         }
     }
 
-    const renderPosition = (position, total) => {
+    const renderPosition = (position: number, total: number) => {
       retryCount = 0;
       positionDisplay.textContent = `#${position} de ${total}`;
 
       const shareText = `¡Ya marqué en la cola pa darle el galletazo a El Necio! Soy el #${position} de ${total}. ¡Sin empujar que hay muchacho! `;
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${window.location.href}`;
-      shareButton.href = shareUrl;
+      shareButton.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${window.location.href}`;
 
       setState('position');
     };
     
-    const renderError = (message) => {
+    const renderError = (message: string) => {
       errorDisplay.textContent = message;
       setState('error');
     }
@@ -100,7 +99,7 @@
         setState('loading');
     }
 
-    const handleJoinQueue = async (e) => {
+    const handleJoinQueue = async (e: Event) => {
       e.preventDefault();
       retryCount = 0;
       renderLoading();
@@ -110,9 +109,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: localStorage.getItem(storageKey) })
         });
-
-        if (!response.ok) throw new Error('Failed to join queue');
-
+        
         const { userId } = await response.json();
         localStorage.setItem(storageKey, userId);
         
@@ -141,14 +138,9 @@
         const response = await fetch(`/api/queue?userId=${userId}`);
         
         if (response.status === 404) {
-             // User is in localStorage but not in DB, maybe DB was cleared
             localStorage.removeItem(storageKey);
             renderButton();
             return;
-        }
-
-        if (!response.ok) {
-            throw new Error('Failed to get queue status');
         }
 
         const { position, total } = await response.json();

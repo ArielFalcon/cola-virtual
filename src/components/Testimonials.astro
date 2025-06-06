@@ -1,19 +1,35 @@
 ---
 import Chat from "./landing/Chat.astro";
 import type { Testimonial } from "../types/testimonials";
+import { db } from '@/lib/firebase-admin';
 
 let testimonials: Testimonial[] = [];
-try {
+console.log('Loading testimonials directly from Firestore...');
 
-  const response = await fetch(new URL('/api/testimonials', Astro.url.origin));
-  if (response.ok) {
-    testimonials = await response.json();
-  } else {
-    console.error(`Error al cargar testimonios: ${response.status}`);
-  }
+try {
+    const testimonialsRef = db.collection('testimonials');
+    const snapshot = await testimonialsRef
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .get();
+
+    if (!snapshot.empty) {
+        testimonials = snapshot.docs.map(doc => {
+            const data = doc.data();
+            const createdAt = data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt;
+            return {
+                id: doc.id,
+                name: data.name,
+                occupation: data.occupation,
+                message: data.message,
+                createdAt: createdAt,
+            } as Testimonial;
+        });
+    }
 } catch (e) {
-  console.error(e);
+    console.error("Error fetching testimonials directly in component:", e);
 }
+
 ---
 <section class="border-b border-white/20">
     <div class="mx-auto max-w-7xl border-x border-white/20">
@@ -21,17 +37,21 @@ try {
             <h2 class="text-3xl font-display uppercase font-bold text-center text-white">Lo que dice la gente en la cola</h2>
         </div>
     </div>
-    <div class="mx-auto max-w-7xl border-x border-t border-white/20 gradient-grid">
+    <div class="mx-auto max-w-7xl border-x border-t border-white/20 gradient-grid py-8 px-4">
+        <Chat testimonials={testimonials} />
         <div class="p-8">
             <div id="testimonial-form-container" class="mb-16">
                 <form id="testimonial-form" class="space-y-6 max-w-2xl mx-auto">
                     <div>
+                        <h3 class="text-xl font-display uppercase font-bold text-center text-white">Envía tu mensaje</h3>
+                    </div>
+                    <div>
                         <label for="name" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Nombre</label>
-                        <input type="text" id="name" name="name" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
+                        <input type="text" id="name" name="name" required minlength="1" maxlength="20" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
                     </div>
                     <div>
                         <label for="occupation" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Ocupación </label>
-                        <input type="text" id="occupation" name="occupation" required minlength="1" maxlength="30" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
+                        <input type="text" id="occupation" name="occupation" required minlength="1" maxlength="20" class="mt-1 block w-full bg-gray-900/50 border-gray-600 rounded-md shadow-sm text-white focus:ring-amber-500 focus:border-amber-500 py-3 px-4">
                     </div>
                     <div>
                         <label for="message" class="block font-display uppercase text-white mb-2 text-sm md:text-base">Tu mensaje</label>
@@ -44,29 +64,22 @@ try {
                 </form>
             </div>
             
-            <Chat testimonials={testimonials} />
+
         </div>
     </div>
 </section>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const formContainer = document.getElementById('testimonial-form-container') as HTMLElement;
         const form = document.getElementById('testimonial-form') as HTMLFormElement;
         const formMessage = document.getElementById('form-message') as HTMLParagraphElement;
         let currentUserId = localStorage.getItem('virtualQueueUserId');
 
-        const checkAndToggleForm = () => {
-            const hasSentMessage = localStorage.getItem('virtualQueueHasSendedMessage') === 'true';
-            formContainer.style.display = hasSentMessage ? 'none' : 'block';
-        };
 
         // Escuchar evento para actualizar UI cuando el usuario se registra
         document.addEventListener('userRegistered', (e: CustomEvent) => {
             if (e.detail.userId) {
                 currentUserId = e.detail.userId;
-                checkAndToggleForm();
-                // Avisar a otros componentes que el usuario ha cambiado
                 document.dispatchEvent(new CustomEvent('userChanged', { detail: { userId: currentUserId } }));
             }
         });
@@ -79,14 +92,14 @@ try {
             const occupation = (form.elements.namedItem('occupation') as HTMLInputElement).value;
             const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
 
-            if (name.length < 1 || name.length > 30) {
-                formMessage.textContent = 'El nombre debe tener entre 1 y 30 caracteres.';
+            if (name.length < 1 || name.length > 20) {
+                formMessage.textContent = 'El nombre debe tener entre 1 y 20 caracteres.';
                 formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
                 return;
             }
 
-            if (occupation.length < 1 || occupation.length > 30) {
-                formMessage.textContent = 'La ocupación debe tener entre 1 y 30 caracteres.';
+            if (occupation.length < 1 || occupation.length > 20) {
+                formMessage.textContent = 'La ocupación debe tener entre 1 y 20 caracteres.';
                 formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
                 return;
             }
@@ -124,8 +137,6 @@ try {
                     // Avisar al carrusel que debe añadir un nuevo testimonio
                     document.dispatchEvent(new CustomEvent('testimonialAdded', { detail: newTestimonial }));
                     
-                    localStorage.setItem('virtualQueueHasSendedMessage', 'true');
-                    checkAndToggleForm();
                     form.reset();
                 } else {
                     const error = await response.json();
@@ -136,12 +147,6 @@ try {
                 formMessage.textContent = 'Error de red. Inténtalo de nuevo.';
                 formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
             }
-        });
-      
-        checkAndToggleForm();
-
-        document.addEventListener('testimonialDeleted', () => {
-            checkAndToggleForm();
         });
     });
 </script> 

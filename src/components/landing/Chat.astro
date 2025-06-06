@@ -53,7 +53,7 @@ const { testimonials } = Astro.props;
 			<div
 				class="h-full splide__track splide__track--slide splide__track--ltr splide__track--draggable"
 				id="splide01-track"
-				style="padding-left: 0px; padding-right: 0px;"
+				style="padding-left: 0; padding-right: 0;"
 				aria-live="polite"
 				aria-atomic="true"
 				aria-busy="false"
@@ -63,7 +63,6 @@ const { testimonials } = Astro.props;
 						<li
 							class="flex justify-center flex-col splide__slide"
 							id={`splide01-slide-${testimonial.id}`}
-							role="tabpanel"
 							aria-roledescription="slide"
 							aria-label={testimonial.name}
 							style="margin-right: 0.5rem; width: calc(((100% + 0.5rem) / 1) - 0.5rem);"
@@ -104,21 +103,14 @@ const { testimonials } = Astro.props;
 			pagination: false,
     });
     splide.mount();
-
-		let currentUserId = localStorage.getItem('virtualQueueUserId');
-
+		
 		const createCardHTML = (testimonial: Testimonial): string => {
-			const isAuthor = testimonial.id === currentUserId;
-			const deleteButtonHTML = isAuthor 
-				? `<button data-id="${testimonial.id}" class="delete-button absolute top-4 right-4 bg-gray-900/70 text-red-400 hover:text-white hover:bg-red-500/80 font-bold py-1 px-2 rounded-md transition-all duration-200 z-10">Borrar</button>`
-				: '';
-			
 			return `
 				<div id="testimonial-${testimonial.id}" class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
-					${deleteButtonHTML}
+			
 					<div class="pr-12">
 						<p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]">
-							“${testimonial.message}”
+							${testimonial.message}
 						</p>
 						<h3 class="font-bold text-white text-xl border-t border-white/20 pt-4">${testimonial.name}</h3>
 						<p class="text-gray-400 text-sm">${testimonial.occupation}</p>
@@ -134,12 +126,6 @@ const { testimonials } = Astro.props;
       newSlide.className = 'splide__slide';
       newSlide.innerHTML = createCardHTML(newTestimonial);
       splide.add(newSlide, 0);
-    });
-
-		document.addEventListener('userChanged', (e: Event) => {
-      const customEvent = e as CustomEvent<{ userId: string }>;
-      currentUserId = customEvent.detail.userId;
-      window.location.reload(); 
     });
 
     splideEl.addEventListener('click', async (e: Event) => {
@@ -163,7 +149,6 @@ const { testimonials } = Astro.props;
               splide.remove(slideIndex);
             }
           }
-          localStorage.setItem('virtualQueueHasSendedMessage', 'false');
           document.dispatchEvent(new CustomEvent('testimonialDeleted'));
         } else {
           alert('No se pudo borrar.');

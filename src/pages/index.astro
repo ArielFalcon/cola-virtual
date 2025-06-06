@@ -4,27 +4,14 @@ import Intro from '@/components/landing/Intro.astro';
 import Services from '@/components/landing/Services.astro'
 import Hero from "@/components/landing/Hero.astro";
 import Testimonials from '@/components/Testimonials.astro';
-
-let testimonials: any[] = [];
-try {
-  const response = await fetch(new URL('/api/testimonials?page=1&limit=20', Astro.url.origin));
-  if (response.ok) {
-    testimonials = await response.json();
-  } else {
-    console.error(`Failed to fetch testimonials: ${response.status}`);
-    testimonials = [];
-  }
-} catch (e) {
-  console.error(e);
-  testimonials = [];
-}
 ---
+
 <BaseLayout
   title="Landing | Astro"
   description="The easiest way to build a website with Astro + Tailwind CSS."
 >
 <Hero />
   <Intro />
-  <Testimonials testimonials={testimonials} />
+  <Testimonials />
   <Services />
 </BaseLayout>

@@ -1,21 +1,16 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../lib/firebase-admin';
+import { db } from '@/lib/firebase-admin';
 
-export const prerender = false;
+export const prerender = false; // Deshabilitar prerenderizado para esta ruta
 
 // GET: Obtener todos los testimonios con paginación
-export const GET: APIRoute = async ({ request }) => {
-    const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
-    const offset = (page - 1) * limit;
+export const GET: APIRoute = async () => {
 
     try {
         const testimonialsRef = db.collection('testimonials');
         const snapshot = await testimonialsRef
+            .limit(50)
             .orderBy('createdAt', 'desc')
-            .limit(limit)
-            .offset(offset)
             .get();
         
         if (snapshot.empty) {
@@ -102,9 +97,6 @@ export const DELETE: APIRoute = async ({ request }) => {
             return new Response('Testimonial not found', { status: 404 });
         }
         
-        // La validación de que el usuario que borra es el correcto se hace
-        // implícitamente al requerir el userId. En una app con autenticación real,
-        // se compararía el userId de la sesión con el del documento.
         await testimonialRef.delete();
 
         return new Response(JSON.stringify({ success: true, message: 'Testimonial deleted' }), {

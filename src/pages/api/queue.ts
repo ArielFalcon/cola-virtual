@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../lib/firebase-admin';
+import { db } from '@/lib/firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 
-export const prerender = false;
+export const prerender = false; // Deshabilitar prerenderizado para esta ruta
 
 export const POST: APIRoute = async ({ request }) => {
   try {

@@ -92,15 +92,15 @@ try {
             const occupation = (form.elements.namedItem('occupation') as HTMLInputElement).value;
             const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
 
-            if (name.length < 1 || name.length > 20) {
-                formMessage.textContent = 'El nombre debe tener entre 1 y 20 caracteres.';
-                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+            if (name.length < 1 || name.length > 30) {
+                formMessage.textContent = 'El nombre debe tener entre 1 y 30 caracteres.';
+                formMessage.className = 'text-center text-sm min-h-[30px] text-red-400';
                 return;
             }
 
-            if (occupation.length < 1 || occupation.length > 20) {
-                formMessage.textContent = 'La ocupación debe tener entre 1 y 20 caracteres.';
-                formMessage.className = 'text-center text-sm min-h-[20px] text-red-400';
+            if (occupation.length < 1 || occupation.length > 30) {
+                formMessage.textContent = 'La ocupación debe tener entre 1 y 30 caracteres.';
+                formMessage.className = 'text-center text-sm min-h-[30px] text-red-400';
                 return;
             }
 

@@ -115,6 +115,10 @@
 
         const { userId } = await response.json();
         localStorage.setItem(storageKey, userId);
+        
+        // Notificar a otros componentes que el usuario se ha registrado.
+        document.dispatchEvent(new CustomEvent('userRegistered', { detail: { userId } }));
+
         checkQueueStatus(); // Re-check status to show position
       } catch (error) {
         console.error(error);

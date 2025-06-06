@@ -21,6 +21,14 @@ const getQueueRatelimit = new Ratelimit({
     prefix: "@upstash/ratelimit-get-queue",
 });
 
+// Límite para la API de testimonios
+const testimonialsRatelimit = new Ratelimit({
+    redis: redis,
+    limiter: Ratelimit.slidingWindow(2, "60 s"), // 2 peticiones (crear, borrar) por minuto
+    analytics: true,
+    prefix: "@upstash/ratelimit-testimonials",
+});
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const url = new URL(context.request.url);
   
@@ -67,5 +75,32 @@ export const onRequest = defineMiddleware(async (context, next) => {
         }
     }
   
+    // --- Nueva lógica para /api/testimonials ---
+    if (url.pathname.startsWith('/api/testimonials')) {
+        // GET no tiene límite, solo POST y DELETE
+        if (context.request.method === 'POST' || context.request.method === 'DELETE') {
+            const ip = context.clientAddress;
+            if (!ip) {
+                return next();
+            }
+
+            const { success, limit, remaining, reset } = await testimonialsRatelimit.limit(ip);
+            
+            context.locals.rateLimit = { limit, remaining, reset };
+        
+            if (!success) {
+                return new Response(JSON.stringify({ error: "Demasiadas peticiones. Por favor, inténtalo de nuevo en un minuto." }), {
+                    status: 429,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-RateLimit-Limit": limit.toString(),
+                        "X-RateLimit-Remaining": remaining.toString(),
+                        "X-RateLimit-Reset": reset.toString(),
+                    },
+                });
+            }
+        }
+    }
+    
     return next();
 }); 

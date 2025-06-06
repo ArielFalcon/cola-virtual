@@ -21,6 +21,7 @@
     "astro": "^5.1.6",
     "firebase-admin": "^13.4.0",
     "npm": "^10.8.3",
+    "swiper": "^11.2.8",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

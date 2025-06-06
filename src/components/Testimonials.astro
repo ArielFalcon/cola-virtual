@@ -1,4 +1,20 @@
 ---
+import Chat from "./landing/Chat.astro";
+import type { Testimonial } from "../types/testimonials";
+
+// 1. Hacemos el fetch en el servidor para tener los datos disponibles para las props.
+let testimonials: Testimonial[] = [];
+try {
+  // Usamos Astro.url para construir una URL absoluta para el fetch en el servidor.
+  const response = await fetch(new URL('/api/testimonials', Astro.url.origin));
+  if (response.ok) {
+    testimonials = await response.json();
+  } else {
+    console.error(`Error al cargar testimonios: ${response.status}`);
+  }
+} catch (e) {
+  console.error(e);
+}
 ---
 <section class="border-b border-white/20">
     <div class="mx-auto max-w-7xl border-x border-white/20">
@@ -28,77 +44,35 @@
                     <p id="form-message" class="text-center text-sm min-h-[20px]"></p>
                 </form>
             </div>
-
-            <div id="testimonials-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-                <p class="initial-loading-message text-center text-gray-400 col-span-full">Cargando testimonios...</p>
-            </div>
+            
+            <!-- 2. Pasamos los testimonios cargados al componente Chat -->
+            <Chat testimonials={testimonials} />
         </div>
     </div>
 </section>
 
 <script>
+    // 3. El script de cliente ahora se enfoca solo en la interactividad (form y borrado)
     document.addEventListener('DOMContentLoaded', () => {
-        const testimonialsContainer = document.getElementById('testimonials-container') as HTMLElement;
         const formContainer = document.getElementById('testimonial-form-container') as HTMLElement;
         const form = document.getElementById('testimonial-form') as HTMLFormElement;
         const formMessage = document.getElementById('form-message') as HTMLParagraphElement;
         let currentUserId = localStorage.getItem('virtualQueueUserId');
 
-        // Escuchar el evento de registro de usuario para actualizar el ID dinámicamente.
-        document.addEventListener('userRegistered', (e: CustomEvent) => {
-            if (e.detail.userId) {
-                currentUserId = e.detail.userId;
-              
-                checkAndToggleForm();
-            }
-        });
-
-        const createTestimonialCardHTML = (testimonial) => {
-            const isAuthor = testimonial.id === currentUserId;
-            const deleteButtonHTML = isAuthor
-                ? `<button data-id="${testimonial.id}" class="delete-button absolute top-4 right-4 bg-gray-900/70 text-red-400 hover:text-white hover:bg-red-500/80 font-bold py-1 px-2 rounded-md transition-all duration-200">Borrar</button>`
-                : '';
-
-            return `
-                <div id="testimonial-${testimonial.id}" class="testimonial-card bg-black p-6 rounded-lg relative">
-                    <div class="pr-12">
-                        <p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent">“${testimonial.message}”</p>
-                        <h3 class="font-bold text-white">${testimonial.name}</h3>
-                        <p class="text-gray-400 text-sm">${testimonial.occupation}</p>
-                    </div>
-                    ${deleteButtonHTML}
-                </div>
-            `;
-        };
-
-        const renderTestimonials = (testimonials) => {
-            if (testimonials.length === 0) {
-                testimonialsContainer.innerHTML = '<p class="text-center text-gray-400 col-span-full">Nadie ha dejado un mensaje todavía. ¡Sé el primero!</p>';
-            } else {
-                testimonialsContainer.innerHTML = testimonials.map(createTestimonialCardHTML).join('');
-            }
-        };
-        
         const checkAndToggleForm = () => {
             const hasSentMessage = localStorage.getItem('virtualQueueHasSendedMessage') === 'true';
             formContainer.style.display = hasSentMessage ? 'none' : 'block';
         };
 
-        const fetchAndRenderTestimonials = async () => {
-            try {
-                const response = await fetch('/api/testimonials');
-                const testimonials = await response.json();
-                renderTestimonials(testimonials);
-                
-                const userHasPosted = testimonials.some(t => t.id === currentUserId);
-                localStorage.setItem('virtualQueueHasSendedMessage', userHasPosted.toString());
+        // Escuchar evento para actualizar UI cuando el usuario se registra
+        document.addEventListener('userRegistered', (e: CustomEvent) => {
+            if (e.detail.userId) {
+                currentUserId = e.detail.userId;
                 checkAndToggleForm();
-
-            } catch (error) {
-                console.error('Failed to fetch testimonials:', error);
-                testimonialsContainer.innerHTML = '<p class="text-center text-red-400 col-span-full">No se pudieron cargar los testimonios.</p>';
+                // Avisar a otros componentes que el usuario ha cambiado
+                document.dispatchEvent(new CustomEvent('userChanged', { detail: { userId: currentUserId } }));
             }
-        };
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -149,12 +123,9 @@
 
                 if (response.ok) {
                     const newTestimonial = await response.json();
-                    const cardHTML = createTestimonialCardHTML(newTestimonial);
                     
-                    const placeholder = testimonialsContainer.querySelector('p.col-span-full');
-                    if (placeholder) placeholder.parentElement.innerHTML = '';
-
-                    testimonialsContainer.insertAdjacentHTML('afterbegin', cardHTML);
+                    // Avisar al carrusel que debe añadir un nuevo testimonio
+                    document.dispatchEvent(new CustomEvent('testimonialAdded', { detail: newTestimonial }));
                     
                     localStorage.setItem('virtualQueueHasSendedMessage', 'true');
                     checkAndToggleForm();
@@ -170,43 +141,10 @@
             }
         });
 
-        testimonialsContainer.addEventListener('click', async (e) => {
-            const target = e.target as HTMLElement;
-            if (target.matches('.delete-button')) {
-                const testimonialId = target.dataset.id;
-                if (!testimonialId || !confirm('¿Estás seguro de que quieres borrar tu mensaje?')) return;
-
-                try {
-                    const response = await fetch('/api/testimonials', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: testimonialId }),
-                    });
-
-                    if (response.ok) {
-                        const cardToRemove = document.getElementById(`testimonial-${testimonialId}`);
-                        if (cardToRemove) {
-                            cardToRemove.style.opacity = '0';
-                            cardToRemove.style.transform = 'scale(0.9)';
-                            setTimeout(() => {
-                                cardToRemove.remove();
-                                if (testimonialsContainer.children.length === 0) {
-                                     testimonialsContainer.innerHTML = '<p class="text-center text-gray-400 col-span-full">Nadie ha dejado un mensaje todavía. ¡Sé el primero!</p>';
-                                }
-                            }, 300);
-                        }
-                        localStorage.setItem('virtualQueueHasSendedMessage', 'false');
-                        checkAndToggleForm();
-                    } else {
-                        alert('No se pudo borrar el mensaje.');
-                    }
-                } catch (error) {
-                    alert('Error de red al intentar borrar.');
-                }
-            }
-        });
+        // La lógica de borrado ahora vivirá dentro del componente del carrusel,
+        // ya que es el que renderiza los botones de borrado.
         
-        // Carga inicial
-        fetchAndRenderTestimonials();
+        // Comprobar estado inicial del formulario
+        checkAndToggleForm();
     });
 </script> 

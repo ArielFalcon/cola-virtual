@@ -1,5 +1,5 @@
 {
-  "name": "@ArielFalcon/ColaVirtual",
+  "name": "cola-virtual",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
     "@astrojs/vercel": "^8.1.5",
+    "@splidejs/splide": "^4.1.4",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/typography": "^0.5.15",
     "@upstash/ratelimit": "^2.0.5",

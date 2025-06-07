@@ -2,40 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '@/lib/firebase-admin';
 import { redis } from '@/lib/redis';
 
-const MAX_TESTIMONIALS = 50;
 const TESTIMONIALS_CACHE_KEY = 'cache:testimonials';
-
-// GET: Obtener todos los testimonios con paginación
-export const GET: APIRoute = async () => {
-
-    try {
-        const testimonialsRef = db.collection('testimonials');
-        const snapshot = await testimonialsRef
-            .limit(50)
-            .orderBy('createdAt', 'desc')
-            .get();
-        
-        if (snapshot.empty) {
-            return new Response(JSON.stringify([]), { 
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        const testimonials = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        return new Response(JSON.stringify(testimonials), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error("Error fetching testimonials:", error);
-        return new Response('Error fetching testimonials', { status: 500 });
-    }
-};
 
 // POST: Crear o actualizar un testimonio
 export const POST: APIRoute = async ({ request }) => {

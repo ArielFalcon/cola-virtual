@@ -127,33 +127,5 @@ const { testimonials } = Astro.props;
       newSlide.innerHTML = createCardHTML(newTestimonial);
       splide.add(newSlide, 0);
     });
-
-    splideEl.addEventListener('click', async (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target && target.matches('.delete-button')) {
-        const testimonialId = target.dataset.id;
-        if (!testimonialId || !confirm('¿Estás seguro?')) return;
-
-        const response = await fetch('/api/testimonials', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: testimonialId }),
-        });
-
-        if (response.ok) {
-          const slideToRemove = target.closest('.splide__slide');
-          if (slideToRemove && slideToRemove.parentElement) {
-            const allSlides = Array.from(slideToRemove.parentElement.children);
-            const slideIndex = allSlides.indexOf(slideToRemove);
-            if (slideIndex > -1) {
-              splide.remove(slideIndex);
-            }
-          }
-          document.dispatchEvent(new CustomEvent('testimonialDeleted'));
-        } else {
-          alert('No se pudo borrar.');
-        }
-      }
-		});
   });
 </script>

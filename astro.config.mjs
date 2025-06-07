@@ -1,9 +1,8 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
-import sitemap from "@astrojs/sitemap";
 import vercel from '@astrojs/vercel';
 export default defineConfig({
-  output: 'server',
+  output: 'static',
   vite: {
     plugins: [tailwindcss()],
   },
@@ -11,7 +10,18 @@ export default defineConfig({
   site: 'https://cola-virtual.vercel.app',
 
   compressHTML: true,
-  integrations: [sitemap()],
+  integrations: [
+    {
+      name: 'set-prerender',
+      hooks: {
+        'astro:route:setup': ({ route }) => {
+          if (route.component.startsWith('src/pages/api/') || route.component.startsWith('src/components/prerender/')) {
+            route.prerender = false;
+          }
+        },
+      },
+    }
+  ],
   adapter: vercel(
     {
       webAnalytics: {

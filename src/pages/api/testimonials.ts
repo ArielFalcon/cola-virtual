@@ -2,8 +2,6 @@ import type { APIRoute } from 'astro';
 import { db } from '@/lib/firebase-admin';
 import { redis } from '@/lib/redis';
 
-export const prerender = false; // Deshabilitar prerenderizado para esta ruta
-
 const MAX_TESTIMONIALS = 50;
 const TESTIMONIALS_CACHE_KEY = 'cache:testimonials';
 

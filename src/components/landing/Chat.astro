@@ -9,24 +9,13 @@ const { testimonials } = Astro.props;
 ---
 
 <section class="border-b border-white/20 bg-accent-500">
-	<div
-		class="mx-auto max-w-7xl border-white/20 border-x"
-		x-data="{ init() {
-      new Splide(this.$refs.splide, {
-        perPage: 4,
-        gap: '1rem',
-        breakpoints: {
-          640: { perPage: 1 },
-        },
-      }).mount()
-    } }"
-	>
+	<div class="mx-auto max-w-7xl border-white/20 border-x">
 		<section
 			class="splide is-initialized splide--slide splide--ltr splide--draggable is-active"
-			aria-label="Splide/Alpine.js"
+      aria-label="Splide/Alpine.js"
 			x-ref="splide"
-			id="splide01"
-			aria-roledescription="carousel"
+      id="splide01"
+      aria-roledescription="carousel"
 		>
 			<div class="splide__arrows splide__arrows--ltr items-center">
 				<button
@@ -52,22 +41,20 @@ const { testimonials } = Astro.props;
 			</div>
 			<div
 				class="h-full splide__track splide__track--slide splide__track--ltr splide__track--draggable"
-				id="splide01-track"
-				style="padding-left: 0; padding-right: 0;"
+        id="splide01-track"
 				aria-live="polite"
-				aria-atomic="true"
-				aria-busy="false"
+        aria-atomic="true"
+        aria-busy="false"
 			>
-				<ul class="splide__list" id="splide01-list" role="presentation">
+      <ul
+          class="splide__list"
+          id="splide01-list"
+          role="presentation"
+				>
+					<!-- Initial testimonials rendered on the server -->
 					{testimonials.map((testimonial) => (
-						<li
-							class="flex justify-center flex-col splide__slide"
-							id={`splide01-slide-${testimonial.id}`}
-							aria-roledescription="slide"
-							aria-label={testimonial.name}
-							style="margin-right: 0.5rem; width: calc(((100% + 0.5rem) / 1) - 0.5rem);"
-						>
-							<div id={`testimonial-${testimonial.id}`} class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
+						<li class="splide__slide">
+							<div class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
 								<div class="pr-12">
 									<p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]">
 										“{testimonial.message}”
@@ -84,12 +71,26 @@ const { testimonials } = Astro.props;
 	</div>
 </section>
 
+<!-- This template is used by the client-side script to add new testimonials securely -->
+<template id="testimonial-card-template">
+    <li class="splide__slide">
+        <div class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
+            <div class="pr-12">
+                <p data-message class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]"></p>
+                <h3 data-name class="font-bold text-white text-xl border-t border-white/20 pt-4"></h3>
+                <p data-occupation class="text-gray-400 text-sm"></p>
+            </div>
+        </div>
+    </li>
+</template>
+
 <script>
   import Splide from '@splidejs/splide';
   import type { Testimonial } from '../../types/testimonials';
   import '@splidejs/splide/css/core';
 
   document.addEventListener('DOMContentLoaded', () => {
+		// Configuration for the Splide carousel
     const splideEl = document.querySelector('.splide') as HTMLElement;
     if (!splideEl) return;
     
@@ -104,28 +105,37 @@ const { testimonials } = Astro.props;
     });
     splide.mount();
 		
-		const createCardHTML = (testimonial: Testimonial): string => {
-			return `
-				<div id="testimonial-${testimonial.id}" class="testimonial-card bg-black p-6 rounded-lg relative min-h-[260px] md:min-h-[340px]">
-			
-					<div class="pr-12">
-						<p class="mb-4 text-sm break-words bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent min-h-[200px] md:min-h-[300px]">
-							${testimonial.message}
-						</p>
-						<h3 class="font-bold text-white text-xl border-t border-white/20 pt-4">${testimonial.name}</h3>
-						<p class="text-gray-400 text-sm">${testimonial.occupation}</p>
-					</div>
-				</div>
-			`;
+    const testimonialTemplate = document.getElementById('testimonial-card-template') as HTMLTemplateElement;
+
+    if (!testimonialTemplate) {
+      console.error('Testimonial card template not found!');
+      return;
+    }
+
+		// Update the testimonials with the new one without reloading the page
+		const createCardElement = (testimonial: Testimonial): HTMLLIElement | null => {
+      const templateNode = testimonialTemplate.content.cloneNode(true);
+      const slideElement = templateNode.firstChild as HTMLLIElement;
+
+      if (!slideElement) return null;
+
+      const messageEl = slideElement.querySelector('[data-message]') as HTMLParagraphElement;
+      const nameEl = slideElement.querySelector('[data-name]') as HTMLHeadingElement;
+      const occupationEl = slideElement.querySelector('[data-occupation]') as HTMLParagraphElement;
+
+      if (messageEl) messageEl.textContent = `“${testimonial.message}”`;
+      if (nameEl) nameEl.textContent = testimonial.name;
+      if (occupationEl) occupationEl.textContent = testimonial.occupation;
+      
+      return slideElement;
 		};
 		
     document.addEventListener('testimonialAdded', (e: Event) => {
-			const customEvent = e as CustomEvent<Testimonial>;
-			const newTestimonial = customEvent.detail;
-      const newSlide = document.createElement('li');
-      newSlide.className = 'splide__slide';
-      newSlide.innerHTML = createCardHTML(newTestimonial);
-      splide.add(newSlide, 0);
+			const newTestimonial = (e as CustomEvent<Testimonial>).detail;
+      const newSlide = createCardElement(newTestimonial);
+      if (newSlide) {
+        splide.add(newSlide, 0);
+      }
     });
   });
 </script>

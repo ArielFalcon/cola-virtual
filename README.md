@@ -25,7 +25,13 @@ El proyecto es, en esencia, un juego y una broma interna para la comunidad cuban
   <a href="https://tailwindcss.com/">
     <img src="https://img.shields.io/badge/tailwind%20css-%2306B6D4.svg?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
   </a>
-    <a href="https://vercel.com/">
+    <a href="https://upstash.com/">
+    <img src="https://img.shields.io/badge/Upstash-000000?style=for-the-badge&logo=upstash&logoColor=white" alt="Upstash"/>
+  </a>
+  <a href="https://stripe.com/">
+    <img src="https://img.shields.io/badge/Stripe-626CD9?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe"/>
+  </a>
+  <a href="https://vercel.com/">
     <img src="https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
   </a>
 </p>
@@ -33,6 +39,7 @@ El proyecto es, en esencia, un juego y una broma interna para la comunidad cuban
 ## ✨ Características Clave
 
 -   **⚡ IP Throttling:** Para prevenir que los "coleros" digitales hagan de las suyas, el sistema utiliza un `rate limiter` a nivel de middleware. Cada IP tiene un cupo de peticiones para mantener el orden. Esta funcionalidad se implementa con la velocidad de [Upstash Redis](https://upstash.com/redis).
+-   **🚄 Caché Inteligente con Redis:** Para una velocidad endiablada y un ahorro considerable en lecturas de base de datos, los testimonios se sirven desde un caché de Redis (Upstash) con una estrategia de invalidación por escritura. ¡Los nuevos chismes aparecen al instante sin sacrificar rendimiento!
 -   **💳 Pagos con Stripe:** Aunque es un juego, el proyecto está preparado para el capitalismo de verdad, integrando [Stripe](https://stripe.com/) como pasarela de pagos.
 -   **🚀 Despliegue en el Edge:** Servido globalmente a través de Vercel para una latencia mínima, porque ni la cola virtual puede ser lenta.
 -   **💬 Testimonios de la Comunidad:** ¿Qué sería de una cola sin el chisme? Los usuarios pueden dejar sus impresiones, que se muestran en tiempo real. Cada usuario tiene derecho a un único brete, ¡así que más vale que sea bueno!

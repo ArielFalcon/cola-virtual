@@ -4,6 +4,8 @@ import type { Testimonial } from "@/types/testimonials";
 import { db } from '@/lib/firebase-admin';
 import { redis } from '@/lib/redis';
 
+export const prerender = false;
+
 let testimonials: Testimonial[] = [];
 const cacheKey = 'cache:testimonials';
 const cacheTTL = 1800; // 30 minutes

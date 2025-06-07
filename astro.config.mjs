@@ -15,7 +15,7 @@ export default defineConfig({
       name: 'set-prerender',
       hooks: {
         'astro:route:setup': ({ route }) => {
-          if (route.component.startsWith('src/pages/api/') || route.component.startsWith('src/components/prerender/')) {
+          if (route.component.startsWith('src/pages/api/')) {
             route.prerender = false;
           }
         },

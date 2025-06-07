@@ -5,7 +5,6 @@ interface Props {
 	testimonials: Testimonial[];
 }
 
-
 const { testimonials } = Astro.props;
 ---
 
@@ -116,7 +115,7 @@ const { testimonials } = Astro.props;
 		// Update the testimonials with the new one without reloading the page
 		const createCardElement = (testimonial: Testimonial): HTMLLIElement | null => {
       const templateNode = testimonialTemplate.content.cloneNode(true);
-      const slideElement = templateNode.firstChild as HTMLLIElement;
+      const slideElement = (templateNode as DocumentFragment).firstElementChild;
 
       if (!slideElement) return null;
 
@@ -128,7 +127,7 @@ const { testimonials } = Astro.props;
       if (nameEl) nameEl.textContent = testimonial.name;
       if (occupationEl) occupationEl.textContent = testimonial.occupation;
       
-      return slideElement;
+      return slideElement as HTMLLIElement;
 		};
 		
     document.addEventListener('testimonialAdded', (e: Event) => {

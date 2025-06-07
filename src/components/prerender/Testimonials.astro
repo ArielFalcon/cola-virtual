@@ -6,6 +6,7 @@ import { redis } from '@/lib/redis';
 
 let testimonials: Testimonial[] = [];
 const cacheKey = 'cache:testimonials';
+const cacheTTL = 1800; // 30 minutes
 
 try {
     // Intentar obtener los datos del caché
@@ -36,8 +37,8 @@ try {
                 } as Testimonial;
             });
 
-            console.log('Saving fresh testimonials to cache (TTL: 120s)...');
-            await redis.set(cacheKey, testimonials, { ex: 120 });
+            console.log(`Saving fresh testimonials to cache (TTL: ${cacheTTL/60} minutes)...`);
+            await redis.set(cacheKey, testimonials, { ex: cacheTTL });
         }
     }
 } catch (error) {

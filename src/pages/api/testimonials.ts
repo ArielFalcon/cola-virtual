@@ -1,7 +1,11 @@
 import type { APIRoute } from 'astro';
 import { db } from '@/lib/firebase-admin';
+import { redis } from '@/lib/redis';
 
 export const prerender = false; // Deshabilitar prerenderizado para esta ruta
+
+const MAX_TESTIMONIALS = 50;
+const TESTIMONIALS_CACHE_KEY = 'cache:testimonials';
 
 // GET: Obtener todos los testimonios con paginación
 export const GET: APIRoute = async () => {
@@ -65,6 +69,16 @@ export const POST: APIRoute = async ({ request }) => {
       createdAt: new Date(),
     };
     await testimonialRef.set(testimonialData, { merge: true });
+
+    // Invalidate the cache after a new testimonial is posted
+    try {
+        console.log('New testimonial posted, invalidating cache...');
+        await redis.del(TESTIMONIALS_CACHE_KEY);
+        console.log('Cache invalidated successfully.');
+    } catch (cacheError) {
+        console.error('Error invalidating testimonials cache:', cacheError);
+        //The cache will expire on its own via TTL.
+    }
 
     const newTestimonial = {
       id: userId,

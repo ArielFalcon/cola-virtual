@@ -2,32 +2,47 @@
 import Chat from "./landing/Chat.astro";
 import type { Testimonial } from "../types/testimonials";
 import { db } from '@/lib/firebase-admin';
+import { redis } from '@/lib/redis';
 
 let testimonials: Testimonial[] = [];
-console.log('Loading testimonials directly from Firestore...');
+const cacheKey = 'cache:testimonials';
 
 try {
-    const testimonialsRef = db.collection('testimonials');
-    const snapshot = await testimonialsRef
-        .orderBy('createdAt', 'desc')
-        .limit(50)
-        .get();
+    // Intentar obtener los datos del caché
+    console.log('Trying to fetch testimonials from cache...');
+    const cachedTestimonials = await redis.get(cacheKey);
 
-    if (!snapshot.empty) {
-        testimonials = snapshot.docs.map(doc => {
-            const data = doc.data();
-            const createdAt = data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt;
-            return {
-                id: doc.id,
-                name: data.name,
-                occupation: data.occupation,
-                message: data.message,
-                createdAt: createdAt,
-            } as Testimonial;
-        });
+    if (cachedTestimonials) {
+        console.log('CACHE HIT! Loading testimonials from Redis.');
+        testimonials = cachedTestimonials as Testimonial[];
+    } else {
+        console.log('CACHE MISS! Loading testimonials from Firestore...');
+        const testimonialsRef = db.collection('testimonials');
+        const snapshot = await testimonialsRef
+            .orderBy('createdAt', 'desc')
+            .limit(50)
+            .get();
+
+        if (!snapshot.empty) {
+            testimonials = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const createdAt = data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt;
+                return {
+                    id: doc.id,
+                    name: data.name,
+                    occupation: data.occupation,
+                    message: data.message,
+                    createdAt: createdAt,
+                } as Testimonial;
+            });
+
+            console.log('Saving fresh testimonials to cache (TTL: 120s)...');
+            await redis.set(cacheKey, testimonials, { ex: 120 });
+        }
     }
-} catch (e) {
-    console.error("Error fetching testimonials directly in component:", e);
+} catch (error) {
+    console.error('Error loading testimonials:', error);
+    testimonials = [];
 }
 
 ---
@@ -38,7 +53,9 @@ try {
         </div>
     </div>
     <div class="mx-auto max-w-7xl border-x border-t border-white/20 gradient-grid py-8 px-4">
-        <Chat testimonials={testimonials} />
+        <div class="relative">
+            <Chat testimonials={testimonials} />
+        </div>
         <div class="p-8">
             <div id="testimonial-form-container" class="mb-16">
                 <form id="testimonial-form" class="space-y-6 max-w-2xl mx-auto">
